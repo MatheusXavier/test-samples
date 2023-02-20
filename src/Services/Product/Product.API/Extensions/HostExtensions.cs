@@ -2,14 +2,34 @@
 
 namespace Product.API.Extensions;
 
-public static class WebApplicationExtensions
+public static class HostExtensions
 {
-    public static WebApplication MigrateDbContext<TContext>(
-        this WebApplication app,
+    public static IWebHost MigrateDbContext<TContext>(
+        this IWebHost webHost,
         Action<TContext, IServiceProvider> seeder) where TContext : notnull, DbContext
     {
-        using IServiceScope scope = app.Services.CreateScope();
+        using IServiceScope scope = webHost.Services.CreateScope();
 
+        MigrateDbContext(scope, seeder);
+
+        return webHost;
+    }
+
+    public static IHost MigrateDbContext<TContext>(
+        this IHost host,
+        Action<TContext, IServiceProvider> seeder) where TContext : notnull, DbContext
+    {
+        using IServiceScope scope = host.Services.CreateScope();
+
+        MigrateDbContext(scope, seeder);
+
+        return host;
+    }
+
+    private static void MigrateDbContext<TContext>(
+        IServiceScope scope,
+        Action<TContext, IServiceProvider> seeder) where TContext : notnull, DbContext
+    {
         IServiceProvider services = scope.ServiceProvider;
         ILogger<TContext> logger = services.GetRequiredService<ILogger<TContext>>();
         TContext context = services.GetRequiredService<TContext>();
@@ -27,7 +47,5 @@ public static class WebApplicationExtensions
         {
             logger.LogError(ex, "An error occurred while migrating the datatabase used on context {context}", typeof(TContext).Name);
         }
-
-        return app;
     }
 }

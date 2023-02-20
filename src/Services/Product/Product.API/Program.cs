@@ -1,34 +1,31 @@
-using Microsoft.EntityFrameworkCore;
-
+using Product.API;
 using Product.API.Extensions;
 using Product.API.Infrastructure.Persistence;
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+IConfiguration configuration = GetConfiguration();
 
-builder.Services.AddControllers();
-builder.Services
-    .AddEndpointsApiExplorer()
-    .AddSwaggerGen()
-    .AddDbContext<ProductContext>(options =>
+IHost host = Host.CreateDefaultBuilder(args)
+    .ConfigureWebHostDefaults(webBuilder =>
     {
-        options.UseSqlServer(builder.Configuration["ConnectionString"]);
-    });
+        webBuilder
+            .ConfigureAppConfiguration(c => c.AddConfiguration(configuration))
+            .UseStartup<Startup>()
+            .UseContentRoot(Directory.GetCurrentDirectory());
+    })
+    .Build();
 
-WebApplication app = builder.Build();
+host.MigrateDbContext<ProductContext>((_, __) => { });
 
-app.MigrateDbContext<ProductContext>((_, __) => { });
+await host.RunAsync();
 
-if (app.Environment.IsDevelopment())
+static IConfiguration GetConfiguration()
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+
+    return new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
+        .AddEnvironmentVariables()
+        .Build();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.UseRouting();
-app.MapControllers();
-
-await app.RunAsync();
