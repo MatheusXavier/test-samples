@@ -4,15 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Product.API.Infrastructure.Persistence;
 
-namespace Product.IntegrationTests.Base
-{
-    public class ProductTestServer : TestServer
-    {
-        public ProductTestServer(IWebHostBuilder builder) : base(builder)
-        {
-            ProductContext = Host.Services.GetRequiredService<ProductContext>();
-        }
+namespace Product.IntegrationTests.Base;
 
-        public ProductContext ProductContext { get; set; }
+public class ProductTestServer : TestServer
+{
+    public ProductTestServer(IWebHostBuilder builder) : base(builder)
+    {
+        ProductContext = Host.Services.GetRequiredService<ProductContext>();
     }
+
+    public ProductContext ProductContext { get; set; }
 }

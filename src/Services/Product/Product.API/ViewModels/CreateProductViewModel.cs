@@ -1,4 +1,3 @@
-﻿namespace Product.API.ViewModels
-{
-    public record CreateProductViewModel(string Name, double Value, bool Active);
-}
+﻿namespace Product.API.ViewModels;
+
+public record CreateProductViewModel(string Name, double Value, bool Active);

@@ -8,48 +8,48 @@ using Product.API.Infrastructure.Persistence;
 using System.Text;
 using System.Text.Json;
 
-namespace Product.IntegrationTests.Base
+namespace Product.IntegrationTests.Base;
+
+public class ProductScenariosBase
 {
-    public class ProductScenariosBase
+    public static ProductTestServer CreateServer()
     {
-        public static ProductTestServer CreateServer()
-        {
-            IWebHostBuilder hostBuilder = new WebHostBuilder()
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .ConfigureAppConfiguration((context, configurationBuilder) =>
-                {
-                    configurationBuilder
-                        .SetBasePath(Directory.GetCurrentDirectory())
-                        .AddJsonFile("appsettings.json", optional: false)
-                        .AddEnvironmentVariables();
-                })
-                .UseStartup<Startup>();
-
-            ProductTestServer testServer = new(hostBuilder);
-
-            testServer.Host.MigrateDbContext<ProductContext>((_, __) => { });
-
-            return testServer;
-        }
-
-        public static async Task<T?> GetRequestContent<T>(HttpResponseMessage httpResponseMessage)
-        {
-            JsonSerializerOptions jsonSettings = new()
+        IWebHostBuilder hostBuilder = new WebHostBuilder()
+            .UseContentRoot(Directory.GetCurrentDirectory())
+            .ConfigureAppConfiguration((context, configurationBuilder) =>
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = true,
-            };
+                configurationBuilder
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", optional: false)
+                    .AddEnvironmentVariables();
+            })
+            .UseStartup<Startup>();
 
-            return JsonSerializer.Deserialize<T>(
-                await httpResponseMessage.Content.ReadAsStringAsync(),
-                jsonSettings);
-        }
+        ProductTestServer testServer = new(hostBuilder);
 
-        public static StringContent BuildRequestContent<T>(T content)
+        testServer.Host.MigrateDbContext<ProductContext>((_, __) => { });
+
+        return testServer;
+    }
+
+    public static async Task<T?> GetRequestContent<T>(
+        HttpResponseMessage httpResponseMessage)
+    {
+        JsonSerializerOptions jsonSettings = new()
         {
-            string serialized = JsonSerializer.Serialize(content);
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+        };
 
-            return new StringContent(serialized, Encoding.UTF8, "application/json");
-        }
+        return JsonSerializer.Deserialize<T>(
+            await httpResponseMessage.Content.ReadAsStringAsync(),
+            jsonSettings);
+    }
+
+    public static StringContent BuildRequestContent<T>(T content)
+    {
+        string serialized = JsonSerializer.Serialize(content);
+
+        return new StringContent(serialized, Encoding.UTF8, "application/json");
     }
 }
